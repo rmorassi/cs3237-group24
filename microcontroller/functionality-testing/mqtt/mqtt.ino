@@ -1,22 +1,21 @@
+/*
+All constants defined in constants.h .
+This program sends MQTT messages every INTERVAL, and prints out any receiving messages.
+*/
+
 /* Include libraries needed */
 #include <ESP8266WiFi.h>
 #include <ArduinoMqttClient.h>
 
-/* Information for wireless network */
-#define SSID "POCO F3"
-#define PASSWORD "boboWifi"
-
 /* MQTT */
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
-#define BROKER "192.168.54.92"
-#define PORT 1883
-#define SEND_TOPIC "Tembusu"
-#define RECEIVE_TOPIC "UTR"
 
-const long interval = 1000;
+/* Constants */
+#include "constants.h"
+
+/* Miscellaneous */
 unsigned long previousMillis = 0;
-
 int count = 0;
 
 void restartESP() {
@@ -56,7 +55,6 @@ void setup() {
   // Setup subscribers
   mqttClient.onMessage(onMqttMessage);
   mqttClient.subscribe(RECEIVE_TOPIC);
-  // Setup publishers
 }
 
 void loop() {
@@ -68,7 +66,7 @@ void loop() {
   // see: File -> Examples -> 02.Digital -> BlinkWithoutDelay for more info
   unsigned long currentMillis = millis();
   
-  if (currentMillis - previousMillis >= interval) {
+  if (currentMillis - previousMillis >= INTERVAL) {
     // save the last time a message was sent
     previousMillis = currentMillis;
 
