@@ -1,5 +1,6 @@
-import socketio
 import base64 as b64
+
+# This file is outdated and needs to be updated to use MQTT
 
 # Change this to the address that appears on start up of the server
 # the 127 address is a loopback so if connecting from a separate device choose
