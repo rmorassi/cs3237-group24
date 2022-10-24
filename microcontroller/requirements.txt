@@ -1,0 +1,4 @@
+Arduino libraries:
+- ArduinoMqttClient by Arduino
+    - Reference: https://www.arduino.cc/reference/en/libraries/arduinomqttclient/
+    - Github: https://github.com/arduino-libraries/ArduinoMqttClient
