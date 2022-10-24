@@ -1,7 +1,6 @@
 import base64 as b64
 import paho.mqtt.client as mqtt
 
-
 # This will run on all addresses on your local machine.
 # Can change this to a specific one by checking what is available by entering
 # the ipconfig command in Windows Command Prompt.
@@ -19,10 +18,11 @@ def setup():
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.message_callback_add("Tembusu/#", echo)
+    # client.message_callback_add("Tembusu/#", echo)
+    client.message_callback_add('image/#', process_image)
     client.connect(IP, 1883, 60)
-    client.publish("UTR", "Hi, it's Tariq!")
-    client.subscribe("Tembusu/#")
+    # client.publish("UTR", "Hi, it's Tariq!")
+    # client.subscribe("Tembusu/#")
     return client
 
 def on_connect(client, userdata, flags, rc):
@@ -32,7 +32,7 @@ def echo(client, userdata, msg):
     print("Received: " + msg.payload.decode('utf-8'))
 
 """Image format should be base64 string."""
-def process_image(image : str):
+def process_image(client, userdata, image : str):
     # if other data is eventually needed then this can be reformatted into
     # JSON
     img_data = b64.b64decode(image)
@@ -45,12 +45,14 @@ def process_image(image : str):
     direction = 'L' 
     # Emit the labelled image to a phone app? - Might be useful for debugging
     # Image compression here??
+    client.publish('direction', direction)
 
 def on_message(client, userdata, msg):
     print(msg.topic + " " + msg.payload.decode('ascii'))
 
-if __name__ == '__main__':
+def main():
     client = setup()
     client.loop_forever()
-    
 
+if __name__ == '__main__':
+    main()
