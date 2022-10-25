@@ -94,8 +94,8 @@ def classify(image, sess, args, image_tensor):
     # Perform the actual detection by running the model with the image as input
     (boxes, scores, classes, num) = sess.run(args,feed_dict={image_tensor: image_expanded})
 
-    coords = [reduceBoxes(boxes[i], scores[i], classes) for i in len(boxes)]
-    ranges = [findRange(coords[i]) for i in len(coords)]
+    coords = reduceBoxes(boxes[0], scores[0], classes)
+    ranges = [findRange(coords[i]) for i in range(len(coords))]
     return sum(ranges) / len(ranges) if len(ranges) else None
 
 def findRange(box):

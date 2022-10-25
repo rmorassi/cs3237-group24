@@ -1,4 +1,5 @@
 import base64 as b64
+import paho.mqtt.client as mqtt
 
 # This file is outdated and needs to be updated to use MQTT
 
@@ -8,16 +9,11 @@ import base64 as b64
 IP = '192.168.54.92'
 PORT = '5000'
 
-with open("/mnt/c/Users/mrx20/Downloads/animal_shoes.jpeg", "rb") as image_file:
-    TEST_IMAGE = b64.b64encode(image_file.read())
+def setup():
+    return mqtt.Client()
 
-sio = socketio.Client()
+def main():
+    client = setup()
+    # loop load image
 
-@sio.on('message')
-def print_message(message: str):
-    print(f"Received message: {message}")
-
-if __name__ == '__main__':
-    sio.connect(f'http://{IP}:{PORT}')
-    sio.emit('message', 'Hi, this is my message!')
-    sio.emit('image', TEST_IMAGE)
+    client.publish("image", img_str)
