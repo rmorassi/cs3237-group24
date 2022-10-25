@@ -1,6 +1,10 @@
 #include "constants.h"
 
 void setup() {
+  // Set up Serial communications
+  Serial.begin(115200);
+  Serial.println();
+  
 	// Set all the motor control pins to outputs
 	pinMode(L_SPE, OUTPUT);
 	pinMode(R_SPE, OUTPUT);
@@ -31,6 +35,7 @@ void directionControl() {
 	analogWrite(R_SPE, 255);
 
 	// Turn on motor A & B
+  Serial.println("Full Speed - Forwards");
 	digitalWrite(L_FOR, HIGH);
 	digitalWrite(L_REV, LOW);
 	digitalWrite(R_FOR, HIGH);
@@ -38,6 +43,7 @@ void directionControl() {
 	delay(2000);
 	
 	// Now change motor directions
+  Serial.println("Full Speed - Backwards");
 	digitalWrite(L_FOR, LOW);
 	digitalWrite(L_REV, HIGH);
 	digitalWrite(R_FOR, LOW);
@@ -45,6 +51,7 @@ void directionControl() {
 	delay(2000);
 	
 	// Turn off motors
+  Serial.println("STOP");
 	digitalWrite(L_FOR, LOW);
 	digitalWrite(L_REV, LOW);
 	digitalWrite(R_FOR, LOW);
@@ -60,6 +67,7 @@ void speedControl() {
 	digitalWrite(R_REV, HIGH);
 	
 	// Accelerate from zero to maximum speed
+  Serial.println("Accelerating - Forwards");
 	for (int i = 0; i < 256; i++) {
 		analogWrite(L_SPE, i);
 		analogWrite(R_SPE, i);
@@ -67,6 +75,7 @@ void speedControl() {
 	}
 	
 	// Decelerate from maximum speed to zero
+  Serial.println("Decelerating - Forwards");
 	for (int i = 255; i >= 0; --i) {
 		analogWrite(L_SPE, i);
 		analogWrite(R_SPE, i);
@@ -74,6 +83,7 @@ void speedControl() {
 	}
 	
 	// Now turn off motors
+  Serial.println("STOP");
 	digitalWrite(L_FOR, LOW);
 	digitalWrite(L_REV, LOW);
 	digitalWrite(R_FOR, LOW);
