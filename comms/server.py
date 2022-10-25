@@ -1,28 +1,58 @@
-from flask import Flask
-from flask_socketio import SocketIO, send
+import base64 as b64
+import paho.mqtt.client as mqtt
 
 # This will run on all addresses on your local machine.
 # Can change this to a specific one by checking what is available by entering
 # the ipconfig command in Windows Command Prompt.
-HOST = '0.0.0.0'
+IP = '192.168.54.92'
+PORT = 1883
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'group24'    # change this to something else later
-socketio = SocketIO(app)
+# TODO:
+#   - Add rooms/namespaces - rooms probably preferred
+#   - Alternatively use the session IDs from clients ??
+#   - Find out format needed for image processing model and decode from base64
+#   - Security? i.e require user/password? - probably just mention in report
+#   - Use image compression for data sent?
 
-@socketio.on('connect')
-def hello():
-    print("Client connected!")
-    return 'Hello, World!'
+def setup():
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    # client.message_callback_add("Tembusu/#", echo)
+    client.message_callback_add('image/#', process_image)
+    client.connect(IP, 1883, 60)
+    # client.publish("UTR", "Hi, it's Tariq!")
+    # client.subscribe("Tembusu/#")
+    return client
 
-@socketio.on('message')
-def echo(message: str):
-    print(f"client sent message: {message}")
-    send(message)
+def on_connect(client, userdata, flags, rc):
+    print("Client connected with result code: " + str(rc))
 
-@socketio.on('*')
-def default_handler(event, data):
-    print(f"Received: {data} from {event}")
+def echo(client, userdata, msg):
+    print("Received: " + msg.payload.decode('utf-8'))
+
+"""Image format should be base64 string."""
+def process_image(client, userdata, image : str):
+    # if other data is eventually needed then this can be reformatted into
+    # JSON
+    img_data = b64.b64decode(image)
+    with open("test_image.jpg", "wb") as img:
+        img.write(img_data)
+    
+    # Process the image using our model
+    # Options can be L, R, F, B, S, N ?
+    # Left, Right, Forward, Backward, Stop, Not Found
+    direction = 'L' 
+    # Emit the labelled image to a phone app? - Might be useful for debugging
+    # Image compression here??
+    client.publish('direction', direction)
+
+def on_message(client, userdata, msg):
+    print(msg.topic + " " + msg.payload.decode('ascii'))
+
+def main():
+    client = setup()
+    client.loop_forever()
 
 if __name__ == '__main__':
-    socketio.run(app, host=HOST)
+    main()
