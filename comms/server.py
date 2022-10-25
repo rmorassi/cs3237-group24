@@ -1,5 +1,6 @@
 import base64 as b64
 import paho.mqtt.client as mqtt
+import ai
 
 # This will run on all addresses on your local machine.
 # Can change this to a specific one by checking what is available by entering
@@ -7,12 +8,15 @@ import paho.mqtt.client as mqtt
 IP = '192.168.54.92'
 PORT = 1883
 
+sess, args, feed_dict = ai.setup()
+
 # TODO:
 #   - Add rooms/namespaces - rooms probably preferred
 #   - Alternatively use the session IDs from clients ??
 #   - Find out format needed for image processing model and decode from base64
 #   - Security? i.e require user/password? - probably just mention in report
 #   - Use image compression for data sent?
+
 
 def setup():
     client = mqtt.Client()
@@ -31,21 +35,24 @@ def on_connect(client, userdata, flags, rc):
 def echo(client, userdata, msg):
     print("Received: " + msg.payload.decode('utf-8'))
 
-"""Image format should be base64 string."""
 def process_image(client, userdata, image : str):
+    """Image format should be base64 string."""
     # if other data is eventually needed then this can be reformatted into
     # JSON
     img_data = b64.b64decode(image)
-    with open("test_image.jpg", "wb") as img:
-        img.write(img_data)
-    
-    # Process the image using our model
-    # Options can be L, R, F, B, S, N ?
-    # Left, Right, Forward, Backward, Stop, Not Found
-    direction = 'L' 
+    # with open("test_image.jpg", "wb") as img:
+    #     img.write(img_data)
+
+    dir = ai.classify(img_data, sess, args, feed_dict)
+
     # Emit the labelled image to a phone app? - Might be useful for debugging
     # Image compression here??
-    client.publish('direction', direction)
+    if dir is None:
+        client.publish('car/control', 'stop')
+    else:
+        client.publish('car/control', 'start')
+        client.publish('car/direction/raw', dir)
+
 
 def on_message(client, userdata, msg):
     print(msg.topic + " " + msg.payload.decode('ascii'))
