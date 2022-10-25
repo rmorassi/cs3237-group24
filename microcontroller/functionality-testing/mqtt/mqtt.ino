@@ -18,13 +18,15 @@ MqttClient mqttClient(wifiClient);
 unsigned long previousMillis = 0;
 int count = 0;
 
-void restartESP() {
+void restartESP()
+{
   Serial.println("Restarting ESP...");
   delay(2000);
   ESP.restart();
 }
 
-void setup() {
+void setup()
+{
 
   // Set up Serial communications
   Serial.begin(115200);
@@ -36,7 +38,8 @@ void setup() {
   Serial.println(SSID);
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASSWORD);
-  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+  {
     Serial.println("WiFi Connect Failed!");
     restartESP();
   }
@@ -46,7 +49,8 @@ void setup() {
   // Set up Wireless communications (MQTT)
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(BROKER);
-  if (!mqttClient.connect(BROKER, PORT)) {
+  if (!mqttClient.connect(BROKER, PORT))
+  {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
     restartESP();
@@ -57,7 +61,8 @@ void setup() {
   mqttClient.subscribe(RECEIVE_TOPIC);
 }
 
-void loop() {
+void loop()
+{
   // call poll() regularly to allow the library to receive MQTT messages and
   // send MQTT keep alives which avoids being disconnected by the broker
   mqttClient.poll();
@@ -65,8 +70,9 @@ void loop() {
   // to avoid having delays in loop, we'll use the strategy from BlinkWithoutDelay
   // see: File -> Examples -> 02.Digital -> BlinkWithoutDelay for more info
   unsigned long currentMillis = millis();
-  
-  if (currentMillis - previousMillis >= INTERVAL) {
+
+  if (currentMillis - previousMillis >= INTERVAL)
+  {
     // save the last time a message was sent
     previousMillis = currentMillis;
 
@@ -87,7 +93,8 @@ void loop() {
   }
 }
 
-void onMqttMessage(int messageSize) {
+void onMqttMessage(int messageSize)
+{
   // we received a message, print out the topic and contents
   Serial.println("Received a message with topic '");
   Serial.print(mqttClient.messageTopic());
@@ -96,7 +103,8 @@ void onMqttMessage(int messageSize) {
   Serial.println(" bytes:");
 
   // use the Stream interface to print the contents
-  while (mqttClient.available()) {
+  while (mqttClient.available())
+  {
     Serial.print((char)mqttClient.read());
   }
   Serial.println();
