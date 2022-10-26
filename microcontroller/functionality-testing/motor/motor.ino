@@ -65,10 +65,10 @@ void directionControl()
 void speedControl()
 {
 	// Turn on motors
-	digitalWrite(L_FOR, LOW);
-	digitalWrite(L_REV, HIGH);
-	digitalWrite(R_FOR, LOW);
-	digitalWrite(R_REV, HIGH);
+	digitalWrite(L_FOR, HIGH);
+	digitalWrite(L_REV, LOW);
+	digitalWrite(R_FOR, HIGH);
+	digitalWrite(R_REV, LOW);
 
 	// Accelerate from zero to maximum speed
 	Serial.println("Accelerating - Forwards");
@@ -81,6 +81,30 @@ void speedControl()
 
 	// Decelerate from maximum speed to zero
 	Serial.println("Decelerating - Forwards");
+	for (int i = 255; i >= 0; --i)
+	{
+		analogWrite(L_SPE, i);
+		analogWrite(R_SPE, i);
+		delay(20);
+	}
+
+	// Turn on motors
+	digitalWrite(L_FOR, LOW);
+	digitalWrite(L_REV, HIGH);
+	digitalWrite(R_FOR, LOW);
+	digitalWrite(R_REV, HIGH);
+
+	// Accelerate from zero to maximum speed
+	Serial.println("Accelerating - Backwards");
+	for (int i = 0; i < 256; i++)
+	{
+		analogWrite(L_SPE, i);
+		analogWrite(R_SPE, i);
+		delay(20);
+	}
+
+	// Decelerate from maximum speed to zero
+	Serial.println("Decelerating - Backwards");
 	for (int i = 255; i >= 0; --i)
 	{
 		analogWrite(L_SPE, i);
