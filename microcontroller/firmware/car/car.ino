@@ -28,9 +28,9 @@ void restartESP()
 }
 
 /* Update vehicle dynamics float and check if value lies within specified range. Stop the car if it lies outside */
-void updateDynamics(float *varToUpdate, float newValue, float min, float max, char *varName)
+void updateDynamics(float *varToUpdate, float newValue, float minimum, float maximum, char *varName)
 {
-    if ((newValue >= min) && (newValue <= max))
+    if ((newValue >= minimum) && (newValue <= maximum))
     {
         Serial.print(varName);
         Serial.print(" received: ");
@@ -41,9 +41,9 @@ void updateDynamics(float *varToUpdate, float newValue, float min, float max, ch
     {
         Serial.print(varName);
         Serial.print(" received is outside range (from ");
-        Serial.print(min);
+        Serial.print(minimum);
         Serial.print(" to ");
-        Serial.print(max);
+        Serial.print(maximum);
         Serial.println(" inclusive)!! Stopping the car as a result...");
         clearToGo = false;
     }
@@ -54,29 +54,29 @@ void messageMux(int messageSize)
 {
     // Get topic and message
     String topic = mqttClient.messageTopic();
-    char message[messageSize];
+    String message = String();
     for (int i = 0; i < messageSize; i++)
     { // Read the entire message
-        message[messageSize] = (char)mqttClient.read();
+        message += (char)mqttClient.read();
     }
 
     // Execute specific function depending on topic
     if (topic == DIRECTION_RAW_TOPIC)
     {
 
-        float newDirectionRaw = atof(message);
+        float newDirectionRaw = message.toFloat();
         updateDynamics(&directionRaw, newDirectionRaw, -1.0, 1.0, "Direction Raw");
     }
     else if (topic == DIRECTION_GAIN_TOPIC)
     {
 
-        float newDirectionGain = atof(message);
+        float newDirectionGain = message.toFloat();
         updateDynamics(&directionGain, newDirectionGain, -1.0, 1.0, "Direction Gain");
     }
     else if (topic == SPEED_TOPIC)
     {
 
-        float newSpeed = atof(message);
+        float newSpeed = message.toFloat();
         updateDynamics(&speed, newSpeed, 0.0, 1.0, "Speed Raw");
     }
     else if (topic == CONTROL_TOPIC)
@@ -112,6 +112,22 @@ void messageMux(int messageSize)
 
 void setup()
 {
+    // Setup I/O
+    // Set all the motor control pins to outputs
+    pinMode(L_SPE, OUTPUT);
+    pinMode(R_SPE, OUTPUT);
+    pinMode(L_FOR, OUTPUT);
+    pinMode(L_REV, OUTPUT);
+    pinMode(R_FOR, OUTPUT);
+    pinMode(R_REV, OUTPUT);
+    // Turn off motors - Initial state
+    analogWrite(L_SPE, 0);
+    analogWrite(R_SPE, 0);
+    digitalWrite(L_FOR, LOW);
+    digitalWrite(L_REV, LOW);
+    digitalWrite(R_FOR, LOW);
+    digitalWrite(R_REV, LOW);
+
     // Set up Serial communications
     Serial.begin(115200);
     Serial.println();
@@ -147,26 +163,10 @@ void setup()
     mqttClient.subscribe(SPEED_TOPIC);
     mqttClient.subscribe(CONTROL_TOPIC);
 
-    // Setup I/O
-    // Set all the motor control pins to outputs
-    pinMode(L_SPE, OUTPUT);
-    pinMode(R_SPE, OUTPUT);
-    pinMode(L_FOR, OUTPUT);
-    pinMode(L_REV, OUTPUT);
-    pinMode(R_FOR, OUTPUT);
-    pinMode(R_REV, OUTPUT);
-    // Turn off motors - Initial state
-    analogWrite(L_SPE, 0);
-    analogWrite(R_SPE, 0);
-    digitalWrite(L_FOR, LOW);
-    digitalWrite(L_REV, LOW);
-    digitalWrite(R_FOR, LOW);
-    digitalWrite(R_REV, LOW);
-
     // Setup vehicle dynamics
     directionRaw = 0.0;  // straight
     directionGain = 0.0; // no gain
-    speed = 0.5;         // half throttle
+    speed = 1;           // full throttle
     clearToGo = false;   // not clear to start
 }
 
