@@ -29,6 +29,8 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <service android:name="org.eclipse.paho.android.service.MqttService">
+        </service>
     </application>
 
 </manifest>
