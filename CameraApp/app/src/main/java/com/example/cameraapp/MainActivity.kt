@@ -4,8 +4,10 @@ import android.Manifest
 import android.app.Fragment
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
+import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
 import android.os.Build
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
             setFragment()
 
         }
+        lateinit var mqttClient = MQTTClient()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -86,7 +89,77 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         }
     }
 
-    override fun onImageAvailable(reader: ImageReader?) {
-        reader?.acquireLatestImage()?.close()
+    //TODO getting frames of live camera footage and passing them to model
+    private var isProcessingFrame = false
+    private val yuvBytes = arrayOfNulls<ByteArray>(3)
+    private var rgbBytes: IntArray? = null
+    private var yRowStride = 0
+    private var postInferenceCallback: Runnable? = null
+    private var imageConverter: Runnable? = null
+    private var rgbFrameBitmap: Bitmap? = null
+    override fun onImageAvailable(reader: ImageReader) {
+        // We need wait until we have some size from onPreviewSizeChosen
+        if (previewWidth == 0 || previewHeight == 0) {
+            return
+        }
+        if (rgbBytes == null) {
+            rgbBytes = IntArray(previewWidth * previewHeight)
+        }
+        try {
+            val image = reader.acquireLatestImage() ?: return
+            if (isProcessingFrame) {
+                image.close()
+                return
+            }
+            isProcessingFrame = true
+            val planes = image.planes
+            fillBytes(planes, yuvBytes)
+            yRowStride = planes[0].rowStride
+            val uvRowStride = planes[1].rowStride
+            val uvPixelStride = planes[1].pixelStride
+            imageConverter = Runnable {
+                ImageUtils.convertYUV420ToARGB8888(
+                    yuvBytes[0]!!,
+                    yuvBytes[1]!!,
+                    yuvBytes[2]!!,
+                    previewWidth,
+                    previewHeight,
+                    yRowStride,
+                    uvRowStride,
+                    uvPixelStride,
+                    rgbBytes!!
+                )
+            }
+            postInferenceCallback = Runnable {
+                image.close()
+                isProcessingFrame = false
+            }
+            processImage()
+        } catch (e: Exception) {
+            return
+        }
+    }
+
+
+    private fun processImage() {
+        imageConverter!!.run()
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888)
+        rgbFrameBitmap?.setPixels(rgbBytes, 0, previewWidth, 0, 0, previewWidth, previewHeight)
+        postInferenceCallback!!.run()
+    }
+
+    protected fun fillBytes(
+        planes: Array<Image.Plane>,
+        yuvBytes: Array<ByteArray?>
+    ) {
+        // Because of the variable row stride it's not possible to know in
+        // advance the actual necessary dimensions of the yuv planes.
+        for (i in planes.indices) {
+            val buffer = planes[i].buffer
+            if (yuvBytes[i] == null) {
+                yuvBytes[i] = ByteArray(buffer.capacity())
+            }
+            buffer[yuvBytes[i]]
+        }
     }
 }
