@@ -220,6 +220,7 @@ void setup()
     {
         Serial.print("MQTT connection failed! Error code: ");
         Serial.println(mqttClient.connectError());
+        delay(3000);
         Serial.println("Attempting connection again...");
     }
     Serial.println("You're connected to the MQTT broker!");
