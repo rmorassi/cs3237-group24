@@ -9,6 +9,7 @@
 #define DIRECTION_TOPIC "car/direction"
 #define SPEED_TOPIC "car/speed"
 #define CONTROL_TOPIC "car/control"
+#define SETUP_TOPIC "car/setup"
 
 /* Information I/O */
 // Left Motor connections (A)

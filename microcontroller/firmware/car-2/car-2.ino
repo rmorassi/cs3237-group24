@@ -77,11 +77,15 @@ void messageMux(int messageSize)
         Serial.print("Control command received: ");
         if (message == "start")
         {
+            direction = 0.0; // still
+            speed = 1;       // full throttle
             clearToGo = true;
             Serial.println("starting...");
         }
         else if (message == "stop")
         {
+            direction = 0.0; // still
+            speed = 1;       // full throttle
             clearToGo = false;
             Serial.println("stopping...");
         }
@@ -171,27 +175,52 @@ void setup()
     Serial.println();
 
     // Set up Wireless network
-    Serial.println("Attempting to connect to WPA network...");
-    Serial.print("SSID: ");
-    Serial.println(SSID);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(SSID, PASSWORD);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    while (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("WiFi Connect Failed!");
-        restartESP();
+        Serial.println("Attempting to connect to WPA network...");
+        Serial.print("SSID: ");
+        Serial.println(SSID);
+
+        WiFi.mode(WIFI_STA);        // Set WiFi mode
+        WiFi.begin(SSID, PASSWORD); // Connect to network
+
+        Serial.print("Waiting for result of connection attempt: ");
+        switch (WiFi.waitForConnectResult())
+        {
+        case WL_IDLE_STATUS:
+            Serial.println("Wi-Fi is in process of changing between statuses");
+            break;
+        case WL_NO_SSID_AVAIL:
+            Serial.println("Configured SSID cannot be reached");
+            break;
+        case WL_CONNECTED:
+            Serial.println("Successful connection is established");
+            break;
+        case WL_CONNECT_FAILED:
+            Serial.println("Connection failed");
+            break;
+        case WL_WRONG_PASSWORD:
+            Serial.println("Password is incorrect");
+            break;
+        case WL_DISCONNECTED:
+            Serial.println("Module is not configured in station mode");
+            break;
+        default:
+            Serial.println("Some unknown status was returned...");
+            break;
+        }
     }
-    Serial.print("Connected to Wifi. IP Address: ");
+    Serial.print("Connected to WiFi. IP Address: ");
     Serial.println(WiFi.localIP());
 
     // Set up Wireless communications (MQTT)
     Serial.print("Attempting to connect to the MQTT broker: ");
     Serial.println(BROKER);
-    if (!mqttClient.connect(BROKER, PORT))
+    while (!mqttClient.connect(BROKER, PORT))
     {
-        Serial.print("MQTT connection failed! Error code = ");
+        Serial.print("MQTT connection failed! Error code: ");
         Serial.println(mqttClient.connectError());
-        restartESP();
+        Serial.println("Attempting connection again...");
     }
     Serial.println("You're connected to the MQTT broker!");
     // Setup subscribers
@@ -204,6 +233,11 @@ void setup()
     direction = 0.0;   // still
     speed = 1;         // full throttle
     clearToGo = false; // not clear to start
+
+    // Confirm setup done
+    mqttClient.beginMessage(SETUP_TOPIC);
+    mqttClient.print("SETUP DONE!");
+    mqttClient.endMessage();
 }
 
 void loop()
