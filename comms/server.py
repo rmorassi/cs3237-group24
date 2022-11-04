@@ -6,6 +6,7 @@ import paho.mqtt.client as mqtt
 # the ipconfig command in Windows Command Prompt.
 IP = '192.168.54.92'
 PORT = 1883
+CLIENT_ID = 'server'
 
 # TODO:
 #   - Add rooms/namespaces - rooms probably preferred
