@@ -137,6 +137,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
                 isProcessingFrame = false
             }
             processImage()
+            sendImageToServer(encodedImage)
         } catch (e: Exception) {
             return
         }
@@ -171,5 +172,11 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         bm?.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val b = baos.toByteArray()
         return Base64.encodeToString(b, Base64.DEFAULT)
+    }
+
+    // TODO: implement sending
+    private fun sendImageToServer(image: String?) {
+        println(image)
+        return
     }
 }
