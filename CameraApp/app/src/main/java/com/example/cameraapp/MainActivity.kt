@@ -13,8 +13,10 @@ import android.media.ImageReader.OnImageAvailableListener
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Base64
 import android.util.Size
 import android.view.Surface
+import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +39,6 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
             setFragment()
 
         }
-        lateinit var mqttClient = MQTTClient()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -161,5 +162,12 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
             }
             buffer[yuvBytes[i]]
         }
+    }
+
+    private fun encodeImage(bm: Bitmap): String? {
+        val baos = ByteArrayOutputStream()
+        bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val b = baos.toByteArray()
+        return Base64.encodeToString(b, Base64.DEFAULT)
     }
 }
