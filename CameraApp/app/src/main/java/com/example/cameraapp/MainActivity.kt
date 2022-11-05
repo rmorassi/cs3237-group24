@@ -98,6 +98,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     private var postInferenceCallback: Runnable? = null
     private var imageConverter: Runnable? = null
     private var rgbFrameBitmap: Bitmap? = null
+    private var encodedImage: String? = null
     override fun onImageAvailable(reader: ImageReader) {
         // We need wait until we have some size from onPreviewSizeChosen
         if (previewWidth == 0 || previewHeight == 0) {
@@ -146,6 +147,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         imageConverter!!.run()
         rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888)
         rgbFrameBitmap?.setPixels(rgbBytes, 0, previewWidth, 0, 0, previewWidth, previewHeight)
+        encodedImage = encodeImage(rgbFrameBitmap)
         postInferenceCallback!!.run()
     }
 
@@ -164,9 +166,9 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         }
     }
 
-    private fun encodeImage(bm: Bitmap): String? {
+    private fun encodeImage(bm: Bitmap?): String? {
         val baos = ByteArrayOutputStream()
-        bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        bm?.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val b = baos.toByteArray()
         return Base64.encodeToString(b, Base64.DEFAULT)
     }
