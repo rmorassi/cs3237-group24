@@ -16,8 +16,11 @@ import android.os.Bundle
 import android.util.Base64
 import android.util.Size
 import android.view.Surface
+import android.view.View
+import org.eclipse.paho.client.mqttv3.MqttException
 import java.io.ByteArrayOutputStream
 
+lateinit var mqttClient: MQTTClient
 class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,10 +38,24 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
                 setFragment()
 
             }
-        }else{
+        } else {
             setFragment()
-
         }
+        val serverURI = "tcp://192.168.2.67:1883"
+        val clientId = "test"
+        val username = "test"
+        val pwd = "test"
+
+        // Check if passed arguments are valid
+        if (serverURI != null &&
+            clientId != null &&
+            username != null &&
+            pwd != null
+        ) {
+            // Open MQTT Broker communication
+            mqttClient = MQTTClient(this, serverURI, clientId)
+        }
+        mqttClient.connect(username, pwd)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -176,7 +193,8 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
 
     // TODO: implement sending
     private fun sendImageToServer(image: String?) {
-        println(image)
+//        println(image)
+        mqttClient.publish("image", image!!)
         return
     }
 }
