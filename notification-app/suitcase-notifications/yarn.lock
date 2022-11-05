@@ -1369,6 +1369,11 @@
   resolved "https://registry.npmjs.org/@gar/promisify/-/promisify-1.1.3.tgz"
   integrity sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==
 
+"@georstat/react-native-image-gallery@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@georstat/react-native-image-gallery/-/react-native-image-gallery-1.1.0.tgz#85ec40cec9415f372c950a5d88e26c7123de3cc8"
+  integrity sha512-rRyZpEFWQXUAlzQqaMi3/r3ymFUKqoQd+Jx1BevUEurMcPAX5321x8BbJ0jo1j4JfWR/koZDwyRZgoitEO5QTA==
+
 "@graphql-typed-document-node/core@^3.1.0", "@graphql-typed-document-node/core@^3.1.1":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@graphql-typed-document-node/core/-/core-3.1.1.tgz"

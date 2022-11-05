@@ -2,6 +2,8 @@ import Paho from 'paho-mqtt';
 import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View } from 'react-native';
+import { ImageGallery } from '@georstat/react-native-image-gallery';
+import { imageString } from '../../test_image/test_image';
 
 const IP = '172.27.210.101'; // Update this
 const PORT = 9001; // Check this
@@ -13,6 +15,7 @@ client = new Paho.Client(IP, PORT, CLIENT_ID);
 export default function StatusScreen({ navigation }) {
   const [ownerIsFound, setOwnerIsFound] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [galleryIsOpen, setGalleryIsOpen] = useState(false);
 
   useEffect(() => {
     connect();
@@ -71,9 +74,11 @@ export default function StatusScreen({ navigation }) {
         </Text>
       </View>
       <StatusBar style='auto' />
-      <Button
-        title='Pictures'
-        onPress={() => navigation.navigate('PicturesScreen')}
+      <Button title='Pictures' onPress={() => setGalleryIsOpen(true)} />
+      <ImageGallery
+        isOpen={galleryIsOpen}
+        close={() => setGalleryIsOpen(false)}
+        images={[{ url: imageString }, { url: imageString }]}
       />
     </View>
   );
