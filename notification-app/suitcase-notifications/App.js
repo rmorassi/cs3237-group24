@@ -1,53 +1,24 @@
-import Paho from 'paho-mqtt';
-import { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import StatusScreen from './src/screens/StatusScreen';
+import PicturesScreen from './src/screens/PicturesScreen';
 
-const IP = '172.31.215.122'; // Update this
-const PORT = 9001; // Check this
-
-client = new Paho.Client(IP, PORT, 'notification-app');
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [notification, setNotification] = useState('Owner not found!');
-
-  useEffect(() => {
-    client.connect({
-      onSuccess: () => {
-        console.log('Connected!');
-        client.subscribe('notifications', {
-          onSuccess: () => console.log('subscribed'),
-        });
-        client.onMessageArrived = onMessage;
-        // client.onMessageDelivered = () => console.log('Hi');
-        client.onConnectionLost = () => console.log('lost connection');
-      },
-      onFailure: () => {
-        console.log('Failed to connect!');
-      },
-    });
-  }, []);
-
-  const onMessage = (message) => {
-    // if (message.destinationName === 'notifications') {
-    console.log(`Message received: ${message.payloadString}`);
-    client.publish('ack', 'message received!');
-    // }
-  };
-
   return (
-    <View style={styles.container}>
-      <Text>{notification}</Text>
-      <StatusBar style='auto' />
-    </View>
+    <NavigationContainer>
+      <MainStack />
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function MainStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='StatusScreen' component={StatusScreen} />
+      <Stack.Screen name='PicturesScreen' component={PicturesScreen} />
+    </Stack.Navigator>
+  );
+}
