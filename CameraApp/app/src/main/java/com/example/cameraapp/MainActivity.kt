@@ -41,6 +41,8 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         } else {
             setFragment()
         }
+
+        // TODO: consider adding fragment to dynamically set serverURI from app
         val serverURI = "tcp://192.168.2.67:1883"
         val clientId = "test"
         val username = "test"
@@ -107,7 +109,6 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         }
     }
 
-    //TODO getting frames of live camera footage and passing them to model
     private var isProcessingFrame = false
     private val yuvBytes = arrayOfNulls<ByteArray>(3)
     private var rgbBytes: IntArray? = null
@@ -191,9 +192,8 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         return Base64.encodeToString(b, Base64.DEFAULT)
     }
 
-    // TODO: implement sending
+
     private fun sendImageToServer(image: String?) {
-//        println(image)
         mqttClient.publish("image", image!!)
         return
     }
