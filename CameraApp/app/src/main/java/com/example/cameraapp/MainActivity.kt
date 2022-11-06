@@ -17,6 +17,8 @@ import android.util.Base64
 import android.util.Size
 import android.view.Surface
 import android.view.View
+import android.widget.Button
+import android.widget.Toast
 import org.eclipse.paho.client.mqttv3.MqttException
 import java.io.ByteArrayOutputStream
 
@@ -42,22 +44,27 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
             setFragment()
         }
 
-        // TODO: consider adding fragment to dynamically set serverURI from app
-        val serverURI = "tcp://192.168.2.67:1883"
-        val clientId = "test"
-        val username = "test"
-        val pwd = "test"
-
-        // Check if passed arguments are valid
-        if (serverURI != null &&
-            clientId != null &&
-            username != null &&
-            pwd != null
-        ) {
-            // Open MQTT Broker communication
-            mqttClient = MQTTClient(this, serverURI, clientId)
+        val buttonConnectToServer = findViewById<Button>(R.id.connect)
+        buttonConnectToServer.setOnClickListener {
+            connectToServer()
         }
-        mqttClient.connect(username, pwd)
+
+//        // TODO: consider adding fragment to dynamically set serverURI from app
+//        val serverURI = "tcp://192.168.2.67:1883"
+//        val clientId = "test"
+//        val username = "test"
+//        val pwd = "test"
+//
+//        // Check if passed arguments are valid
+//        if (serverURI != null &&
+//            clientId != null &&
+//            username != null &&
+//            pwd != null
+//        ) {
+//            // Open MQTT Broker communication
+//            mqttClient = MQTTClient(this, serverURI, clientId)
+//        }
+//        mqttClient.connect(username, pwd)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -192,9 +199,37 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         return Base64.encodeToString(b, Base64.DEFAULT)
     }
 
+    private var isConnectedToServer = false
+    private fun connectToServer() {
+        // TODO: consider adding fragment to dynamically set serverURI from app
+        val serverURI = "tcp://192.168.2.67:1883"
+        val clientId = "test"
+        val username = "test"
+        val pwd = "test"
 
+        // Open MQTT Broker communication
+        mqttClient = MQTTClient(this, serverURI, clientId)
+
+        try {
+            mqttClient.connect(username, pwd)
+            isConnectedToServer = true
+            Toast.makeText(this, "connection success!", Toast.LENGTH_SHORT).show()
+        } catch (e: MqttException) {
+            Toast.makeText(this, "connection failed, try again", Toast.LENGTH_SHORT).show()
+            isConnectedToServer = false
+        }
+    }
+
+    var imageCounter = 0
+    var fps = 10
+    var frequency = 60/fps
     private fun sendImageToServer(image: String?) {
+        if (!isConnectedToServer) return
+
         mqttClient.publish("image", image!!)
-        return
+        imageCounter++
+        if (imageCounter%frequency == 0) {
+            mqttClient.publish("counter", (imageCounter/frequency).toString())
+        }
     }
 }
