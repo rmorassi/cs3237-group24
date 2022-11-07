@@ -7,6 +7,8 @@ import tensorflow.compat.v1 as tf
 import sys
 import matplotlib.pyplot as plt
 from PIL import Image
+import base64
+import io
 
 # Import utilites
 from object_detection.utils import label_map_util
@@ -212,5 +214,17 @@ def prep_img(img):
     final = np.expand_dims(imgarray, axis=0)
     return final
 
+def b64ToOCV2Image(b64_string):
+    """
+    Converts a base64 string to an OpenCV2 compatible image.
+    """
+    imgdata = base64.b64decode(b64_string)
+    pil_image = Image.open(io.BytesIO(imgdata))
+    ocv_img = np.array(pil_image)
+
+    # Convert RGB to BGR, as is required in OCV2
+    ocv_img = ocv_img[:, :, ::-1].copy()
+    return ocv_img
+
 # sess, args, feed_dict = setup()
-# print(find_loc(loadImage("../test.jpg", False), sess, args, feed_dict))
+# print(find_loc(b64ToOCV2Image(b64), sess, args, feed_dict))
