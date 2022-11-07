@@ -112,7 +112,7 @@ def find_loc(image, sess, args, image_tensor):
     coords = reduceBoxes(boxes[0], scores[0], classes)
     ranges = [findRange(coords[i]) for i in range(len(coords))]
 
-    # print("Found %d shoes!" % len(ranges))
+    print("Found %d shoes!" % len(ranges))
     relevantRanges = []
 
     # If we find a shoe
@@ -122,6 +122,7 @@ def find_loc(image, sess, args, image_tensor):
             set_session(session)
             model = load_model(MODEL_FILE)
 
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             im_pil = Image.fromarray(image)
 
             # Cut out the shoe part of the image
@@ -131,7 +132,7 @@ def find_loc(image, sess, args, image_tensor):
 
                 if label != "others":
                     relevantRanges.append(ranges[i])
-                # print("Predict that this shoe is %s's with certainty %s" % (label, prob))
+                print("Predict that this shoe is %s's with certainty %s" % (label, prob))
 
     return sum(relevantRanges) / len(relevantRanges) if len(relevantRanges) else None
 
