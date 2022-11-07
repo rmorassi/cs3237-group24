@@ -17,7 +17,7 @@ export default function StatusScreen({ navigation }) {
   const [ownerIsFound, setOwnerIsFound] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [galleryIsOpen, setGalleryIsOpen] = useState(false);
-  const images = useRef([]);
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     connect();
@@ -26,11 +26,21 @@ export default function StatusScreen({ navigation }) {
   const onMessage = (message) => {
     if (message.destinationName === 'notifications') {
       console.log(`Image received`);
-      // if (images.length >= MAX_IMAGES) {
-      //   images.shift();
-      // }
-      // images.push({ url: message.payloadString });
-      console.log(`I have ${images.length} images.`);
+      try {
+        setImages((prevImages) => {
+          let newImages = prevImages;
+          if (prevImages.length >= MAX_IMAGES) {
+            newImages.shift();
+          }
+          newImages.push({
+            url: 'data:image/jpeg;base64,' + message.payloadString,
+          });
+          console.log(`I have ${newImages.length} images.`);
+          return newImages;
+        });
+      } catch (e) {
+        console.log(e);
+      }
       // client.publish('ack', 'message received!');
     }
   };
@@ -85,7 +95,7 @@ export default function StatusScreen({ navigation }) {
       <ImageGallery
         isOpen={galleryIsOpen}
         close={() => setGalleryIsOpen(false)}
-        // images={images}
+        images={images}
       />
     </View>
   );
