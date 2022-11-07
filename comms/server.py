@@ -5,7 +5,7 @@ import ai
 # This will run on all addresses on your local machine.
 # Can change this to a specific one by checking what is available by entering
 # the ipconfig command in Windows Command Prompt.
-IP = '192.168.54.92'
+IP = '172.17.101.149'
 PORT = 1883
 
 sess, args, feed_dict = ai.setup()
@@ -13,7 +13,6 @@ sess, args, feed_dict = ai.setup()
 # TODO:
 #   - Add rooms/namespaces - rooms probably preferred
 #   - Alternatively use the session IDs from clients ??
-#   - Find out format needed for image processing model and decode from base64
 #   - Security? i.e require user/password? - probably just mention in report
 #   - Use image compression for data sent?
 
