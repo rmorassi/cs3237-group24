@@ -1,5 +1,5 @@
 import Paho from 'paho-mqtt';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { ImageGallery } from '@georstat/react-native-image-gallery';
@@ -9,6 +9,7 @@ const IP = '172.27.210.101'; // Update this
 const PORT = 9001; // Check this
 const SUB_TOPICS = ['notifications'];
 const CLIENT_ID = 'notification-app';
+const MAX_IMAGES = 8;
 
 client = new Paho.Client(IP, PORT, CLIENT_ID);
 
@@ -16,16 +17,22 @@ export default function StatusScreen({ navigation }) {
   const [ownerIsFound, setOwnerIsFound] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [galleryIsOpen, setGalleryIsOpen] = useState(false);
+  const images = useRef([]);
 
   useEffect(() => {
     connect();
   }, []);
 
   const onMessage = (message) => {
-    // if (message.destinationName === 'notifications') {
-    console.log(`Message received: ${message.payloadString}`);
-    client.publish('ack', 'message received!');
-    // }
+    if (message.destinationName === 'notifications') {
+      console.log(`Image received`);
+      // if (images.length >= MAX_IMAGES) {
+      //   images.shift();
+      // }
+      // images.push({ url: message.payloadString });
+      console.log(`I have ${images.length} images.`);
+      // client.publish('ack', 'message received!');
+    }
   };
 
   const onConnect = () => {
@@ -78,7 +85,7 @@ export default function StatusScreen({ navigation }) {
       <ImageGallery
         isOpen={galleryIsOpen}
         close={() => setGalleryIsOpen(false)}
-        images={[{ url: imageString }, { url: imageString }]}
+        // images={images}
       />
     </View>
   );
