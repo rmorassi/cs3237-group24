@@ -18,6 +18,7 @@ import android.util.Size
 import android.view.Surface
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import org.eclipse.paho.client.mqttv3.MqttException
 import java.io.ByteArrayOutputStream
@@ -48,23 +49,6 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         buttonConnectToServer.setOnClickListener {
             connectToServer()
         }
-
-//        // TODO: consider adding fragment to dynamically set serverURI from app
-//        val serverURI = "tcp://192.168.2.67:1883"
-//        val clientId = "test"
-//        val username = "test"
-//        val pwd = "test"
-//
-//        // Check if passed arguments are valid
-//        if (serverURI != null &&
-//            clientId != null &&
-//            username != null &&
-//            pwd != null
-//        ) {
-//            // Open MQTT Broker communication
-//            mqttClient = MQTTClient(this, serverURI, clientId)
-//        }
-//        mqttClient.connect(username, pwd)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -201,8 +185,8 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
 
     private var isConnectedToServer = false
     private fun connectToServer() {
-        // TODO: consider adding fragment to dynamically set serverURI from app
-        val serverURI = "tcp://192.168.2.67:1883"
+        val serverUriFromInput = findViewById<EditText>(R.id.server_uri).text.toString()
+        val serverURI = "tcp://$serverUriFromInput:1883"
         val clientId = "test"
         val username = "test"
         val pwd = "test"
@@ -213,9 +197,9 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         try {
             mqttClient.connect(username, pwd)
             isConnectedToServer = true
-            Toast.makeText(this, "connection success!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "connected to $serverUriFromInput!", Toast.LENGTH_SHORT).show()
         } catch (e: MqttException) {
-            Toast.makeText(this, "connection failed, try again", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "failed to connect to $serverUriFromInput, please try again", Toast.LENGTH_SHORT).show()
             isConnectedToServer = false
         }
     }
