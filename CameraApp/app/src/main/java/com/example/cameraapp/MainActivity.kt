@@ -202,7 +202,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     private var isConnectedToServer = false
     private fun connectToServer() {
         // TODO: consider adding fragment to dynamically set serverURI from app
-        val serverURI = "tcp://192.168.2.67:1883"
+        val serverURI = "tcp://172.31.215.122:1883"
         val clientId = "test"
         val username = "test"
         val pwd = "test"
@@ -221,15 +221,14 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     }
 
     var imageCounter = 0
-    var fps = 10
+    var fps = 1
     var frequency = 60/fps
     private fun sendImageToServer(image: String?) {
         if (!isConnectedToServer) return
 
-        mqttClient.publish("image", image!!)
         imageCounter++
         if (imageCounter%frequency == 0) {
-            mqttClient.publish("counter", (imageCounter/frequency).toString())
+            mqttClient.publish("image", image!!)
         }
     }
 }
