@@ -51,7 +51,7 @@ def process_image(client, userdata, image : str):
         client.publish('car/control', 'stop')
     else:
         client.publish('car/control', 'start')
-        client.publish('car/direction/raw', dir)
+        client.publish('car/direction', dir)
 
 
 def on_message(client, userdata, msg):
