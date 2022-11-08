@@ -1,16 +1,16 @@
 import base64 as b64
 import paho.mqtt.client as mqtt
-import numpy as np
-import cv2
+import subprocess
+import time
 import ai
 
-# This will run on all addresses on your local machine.
-# Can change this to a specific one by checking what is available by entering
-# the ipconfig command in Windows Command Prompt.
-IP = '192.168.86.92'
+IP = '192.168.200.92'
 PORT = 1883
+last_time = 0
+NOTIFICATION_INTERVAL = 500
+NOTIFICATION_TOPIC = 'notifications/'
 
-sess, args, feed_dict = ai.setup()
+sess, args, feed_dict, model = ai.setup()
 
 # TODO:
 #   - Add rooms/namespaces - rooms probably preferred
@@ -20,9 +20,11 @@ sess, args, feed_dict = ai.setup()
 
 
 def setup():
+    # command = 'mosquitto -c /etc/mosquitto/mosquitto.conf'
+    # process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    # output, error = process.communicate()
     client = mqtt.Client()
     client.on_connect = on_connect
-
     client.connect(IP, PORT, 60)
     return client
 
@@ -37,25 +39,26 @@ def echo(client, userdata, msg):
 
 def process_image(client, userdata, message):
     """Image format should be base64 string."""
+    print('received image')
     # if other data is eventually needed then this can be reformatted into
     # JSON
-    # print(f'{message.payload.decode("utf-8")}')
-
-    img_bytes = b64.b64decode(message.payload.decode('utf-8')) + b'=='  # honestly wtf is this
-    im_arr = np.frombuffer(img_bytes, dtype=np.uint8)  # im_arr is one-dim Numpy array
-    img = cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
-    # with open("test_image.jpg", "wb") as img:
-    #     img.write(img_data)
-
-    dir = ai.classify(img, sess, args, feed_dict)
-
+    curr_time = round(time.time() * 1000)
+    global last_time
+    if (curr_time - last_time > NOTIFICATION_INTERVAL):
+        print('sending image to phone')
+        last_time = curr_time
+        client.publish(NOTIFICATION_TOPIC, message.payload.decode('utf-8'))
+    
+    img = ai.b64ToOCV2Image(message.payload.decode('utf-8'))
+    dir = ai.find_loc(img, sess, args, feed_dict, model)
     # Emit the labelled image to a phone app? - Might be useful for debugging
     # Image compression here??
     if dir is None:
-        client.publish('car/direction', -1)
+        client.publish('car/direction', 0)
     else:
         client.publish('car/direction', round(dir, 2))
-
+        time.sleep(0.2)
+        client.publish('car/direction', 0)
 
 def on_message(client, userdata, msg):
     print(msg.topic + " " + msg.payload.decode('ascii'))

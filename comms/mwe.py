@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 
-IP = '172.31.215.122'
+IP = '192.168.200.92'
 PORT = 1883
 
 def setup():
@@ -15,7 +15,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe('image/#')
 
 def on_message(client, userdata, msg):
-    print(msg.topic + " " + msg.payload.decode('ascii'))
+    print('received image')
 
 def main():
     client = setup()

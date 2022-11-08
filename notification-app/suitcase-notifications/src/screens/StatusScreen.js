@@ -18,7 +18,9 @@ export default function StatusScreen() {
   const [ip, setIp] = useState('192.168.123.456');
   const [port, setPort] = useState('9001');
 
-  client = new Paho.Client(ip, parseInt(port), CLIENT_ID);
+  useEffect(() => {
+    client = new Paho.Client(ip, parseInt(port), CLIENT_ID);
+  }, [ip, port]);
 
   const onMessage = (message) => {
     if (message.destinationName === 'notifications') {
@@ -45,6 +47,7 @@ export default function StatusScreen() {
   const onConnect = () => {
     console.log(`Connected to ${ip}:${port} as ${CLIENT_ID}`);
     setIsConnected(true);
+
     SUB_TOPICS.forEach((topic) => {
       client.subscribe(topic, {
         onSuccess: () => console.log(`Subscribed to ${topic}`),
@@ -68,6 +71,12 @@ export default function StatusScreen() {
         setIsConnected(false);
       },
     });
+  };
+
+  const openGallery = () => {
+    if (images.length > 0) {
+      setGalleryIsOpen(true);
+    }
   };
 
   return (
@@ -112,7 +121,7 @@ export default function StatusScreen() {
             { flex: 1, justifyContent: 'space-around' },
           ]}
         >
-          <Button title='Pictures' onPress={() => setGalleryIsOpen(true)} />
+          <Button title='Pictures' onPress={() => openGallery()} />
           <Button title='Connect!' onPress={() => connect()} />
         </View>
       </View>
