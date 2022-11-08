@@ -26,9 +26,7 @@ float speed;
 float direction;
 
 /* Debouncing */
-unsigned long time_dir_btn;
-unsigned long time_ctrl_btn;
-unsigned long time_spd_btn;
+volatile unsigned long time_dir_btn, time_ctrl_btn, time_spd_btn;
 
 /* Restart the microcontroller if something went terribly wrong */
 void restartESP()
@@ -127,7 +125,7 @@ ICACHE_RAM_ATTR void speedPressed()
 
     float speed = readChannel(JOYSTICK_Y);
     speed = (speed < 0) ? 0 : ((speed > 1) ? 1 : speed); // should vary between 0 and 1
-    speed = ((float)(int)(speed * 100)) / 100;
+    speed = ((float)(int)(speed * 100)) / 100;           // round to two decimal places
 
     mqttClient.beginMessage(SPEED_TOPIC);
     mqttClient.print(speed);
@@ -248,7 +246,7 @@ void loop()
         float currDir = readChannel(JOYSTICK_X);
         currDir = (currDir - 0.5) * 2;
         currDir = (currDir < -1) ? -1 : ((currDir > 1) ? 1 : currDir); // should vary between -1 and 1
-        currDir = ((float)(int)(currDir * 100)) / 100;
+        currDir = ((float)(int)(currDir * 100)) / 100;                 // round to two decimal places
 
         if (currDir != direction)
         {
