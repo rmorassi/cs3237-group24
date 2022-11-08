@@ -101,7 +101,7 @@ def loadImage(path, convert):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
-def find_loc(image, sess, args, image_tensor):
+def find_loc(image, sess, args, image_tensor, model):
     """
     Finds the horizontal location of a given pair of shoes.
     Makes sure it is one of our shoes first.
@@ -119,10 +119,8 @@ def find_loc(image, sess, args, image_tensor):
 
     # If we find a shoe
     if len(ranges):
-        # TODO: IMPORTANT: Preload model once, don't load every loop!
         with session.graph.as_default():
             set_session(session)
-            model = load_model(MODEL_FILE)
 
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             im_pil = Image.fromarray(image)
@@ -192,7 +190,11 @@ def setup():
     Prepare and load all models once at the start.
     """
     prepare()
-    return prep_model()
+    with session.graph.as_default():
+        set_session(session)
+        model = load_model(MODEL_FILE)
+
+        return prep_model() + (model,)
 
 def classify(model, image):
     """
@@ -218,7 +220,7 @@ def b64ToOCV2Image(b64_string):
     """
     Converts a base64 string to an OpenCV2 compatible image.
     """
-    imgdata = base64.b64decode(b64_string)
+    imgdata = base64.b64decode(b64_string + "==")
     pil_image = Image.open(io.BytesIO(imgdata))
     ocv_img = np.array(pil_image)
 
@@ -226,5 +228,5 @@ def b64ToOCV2Image(b64_string):
     ocv_img = ocv_img[:, :, ::-1].copy()
     return ocv_img
 
-# sess, args, feed_dict = setup()
-# print(find_loc(b64ToOCV2Image(b64), sess, args, feed_dict))
+# sess, args, feed_dict, model = setup()
+# print(find_loc(b64ToOCV2Image(b64), sess, args, feed_dict, model))
