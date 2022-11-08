@@ -29,7 +29,9 @@ def setup():
     return client
 
 def send_image(client):
-    client.publish(PUB_TOPIC, TEST_IMAGE)
+    client.publish(PUB_TOPIC, TEST_IMAGE.decode('utf-8'))
+    print(TEST_IMAGE.decode('utf-8'))
+    print('\n\n\n\n')
 
 def print_message(message: str):
     print(f"Received message: {message}")

@@ -1,0 +1,3 @@
+[submodule "comms/models"]
+	path = comms/models
+	url = https://github.com/tensorflow/models
