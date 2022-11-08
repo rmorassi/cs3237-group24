@@ -7,10 +7,20 @@ import tensorflow.compat.v1 as tf
 import sys
 import matplotlib.pyplot as plt
 from PIL import Image
+import base64
+import io
 
 # Import utilites
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
+
+from tensorflow.python.keras.backend import set_session
+from tensorflow.keras.models import Model, load_model
+
+session = tf.compat.v1.Session(graph = tf.compat.v1.Graph())
+catgs = {0:"others", 1:"rik", 2:"tariq", 3:"victor"}
+MODEL_FILE = "shoes.hd5"
+names = ["victor", "rik", "tariq"]
 
 def prepare():
     # Clone the tensorflow models repository if it doesn't already exist
@@ -25,7 +35,7 @@ def prepare():
     # This is needed since the notebook is stored in the object_detection folder.
     sys.path.append("..")
 
-def load_model():
+def prep_model():
     # Grab path to current working directory
     CWD_PATH = os.getcwd()
 
@@ -82,25 +92,59 @@ def load_model():
     return sess, args, image_tensor
 
 def loadImage(path, convert):
+    """
+    Loads an image from a path.
+    Optionally convert it from BGR to RGB.
+    """
     image = cv2.imread(path)
     if convert:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
-def classify(image, sess, args, image_tensor):
+def find_loc(image, sess, args, image_tensor):
+    """
+    Finds the horizontal location of a given pair of shoes.
+    Makes sure it is one of our shoes first.
+    """
     image_expanded = np.expand_dims(image, axis=0)
-
 
     # Perform the actual detection by running the model with the image as input
     (boxes, scores, classes, num) = sess.run(args,feed_dict={image_tensor: image_expanded})
 
     coords = reduceBoxes(boxes[0], scores[0], classes)
     ranges = [findRange(coords[i]) for i in range(len(coords))]
-    return sum(ranges) / len(ranges) if len(ranges) else None
+
+    print("Found %d shoes!" % len(ranges))
+    relevantRanges = []
+
+    # If we find a shoe
+    if len(ranges):
+        # TODO: IMPORTANT: Preload model once, don't load every loop!
+        with session.graph.as_default():
+            set_session(session)
+            model = load_model(MODEL_FILE)
+
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            im_pil = Image.fromarray(image)
+
+            # Cut out the shoe part of the image
+            for i, box in enumerate(coords):
+                cropped = cropImg(im_pil, box['box'])
+                label, prob, _ = classify(model, prep_img(cropped))
+
+                if label != "others":
+                    relevantRanges.append(ranges[i])
+                print("Predict that this shoe is %s's with certainty %s" % (label, prob))
+
+    return sum(relevantRanges) / len(relevantRanges) if len(relevantRanges) else None
 
 def findRange(box):
-    # Coords in {TopDist, LeftDist, BotDist, RightDist}
-    # Returns a value between -1 and 1 for left and right
+    """
+    Finds the horizontal location of a given pair of shoes.
+    Coordinates are expected in {TopDist, LeftDist, BotDist, RightDist}
+    Returns a value between -1 and 1 for left and right respectively.
+    """
+
     leftDist = box['box'][1]
     rightDist = box['box'][3]
     avg = (rightDist - leftDist) / 2 + (leftDist)
@@ -127,8 +171,12 @@ def reduceBoxes(boxes, scores, classes):
     return coordinates
 
 def cropImg(image, box):
-    # box in {TopDist, LeftDist, BotDist, RightDist}, in ratios
-    # left, upper, right, and lower
+    """
+    Crops a box out of a full image.
+    The format of the box is expected to be as follows:
+     {TopDist, LeftDist, BotDist, RightDist}, in ratios of the total picture
+    """
+
     PIL_image = Image.fromarray(np.uint8(image)).convert('RGB')
     siz = PIL_image.size
     hwhw = np.tile(siz, 2).flatten()
@@ -140,8 +188,43 @@ def cropImg(image, box):
     return PIL_image.crop(imgcoords)
 
 def setup():
+    """
+    Prepare and load all models once at the start.
+    """
     prepare()
-    return load_model()
+    return prep_model()
+
+def classify(model, image):
+    """
+    Classifies an image: in our case determines whose shoe it is.
+    """
+    with session.graph.as_default():
+        set_session(session)
+        result = model.predict(image)
+        themax = np.argmax(result)
+
+    return (catgs[themax], result[0][themax], themax)
+
+def prep_img(img):
+    """
+    Prepares an image, to make it ready for classification on whose shoe it is.
+    """
+    img = img.resize((249, 249))
+    imgarray = np.array(img)/255.0
+    final = np.expand_dims(imgarray, axis=0)
+    return final
+
+def b64ToOCV2Image(b64_string):
+    """
+    Converts a base64 string to an OpenCV2 compatible image.
+    """
+    imgdata = base64.b64decode(b64_string)
+    pil_image = Image.open(io.BytesIO(imgdata))
+    ocv_img = np.array(pil_image)
+
+    # Convert RGB to BGR, as is required in OCV2
+    ocv_img = ocv_img[:, :, ::-1].copy()
+    return ocv_img
 
 # sess, args, feed_dict = setup()
-# classify(loadImage("images/test.jpg"), sess, args, feed_dict)
+# print(find_loc(b64ToOCV2Image(b64), sess, args, feed_dict))
