@@ -16,6 +16,8 @@ float direction;
 float speed;
 // true when the car can safely proceed
 bool clearToGo;
+// stop range
+float stopRange;
 
 /* Restart the microcontroller if something went terribly wrong */
 void restartESP()
@@ -61,13 +63,11 @@ void messageMux(int messageSize)
     // Execute specific function depending on topic
     if (topic == DIRECTION_TOPIC)
     {
-
         float newDirection = message.toFloat();
         updateDynamics(&direction, newDirection, -1.0, 1.0, "Direction Raw");
     }
     else if (topic == SPEED_TOPIC)
     {
-
         float newSpeed = message.toFloat();
         updateDynamics(&speed, newSpeed, 0.0, 1.0, "Speed Raw");
     }
@@ -97,6 +97,10 @@ void messageMux(int messageSize)
             Serial.println(")! stopping anyways...");
         }
     }
+    else if (topic == RANGE_TOPIC) {
+        float newStopRange = message.toFloat();
+        updateDynamics(&stopRange, newStopRange, 0.0, 1.0, "Stop Range");
+    }
     else
     {
         Serial.print("Received a message from topic: ");
@@ -118,14 +122,14 @@ void controlCar()
         analogWrite(R_SPE, speed * 255);
 
         // Set wheel directions
-        if (direction <= -0.5)
+        if (direction <= -stopRange)
         { // Left movement
             digitalWrite(L_FOR, LOW);
             digitalWrite(L_REV, HIGH);
             digitalWrite(R_FOR, HIGH);
             digitalWrite(R_REV, LOW);
         }
-        else if (direction >= 0.5)
+        else if (direction >= stopRange)
         { // Right movement
             digitalWrite(L_FOR, HIGH);
             digitalWrite(L_REV, LOW);
@@ -229,11 +233,13 @@ void setup()
     mqttClient.subscribe(DIRECTION_TOPIC);
     mqttClient.subscribe(SPEED_TOPIC);
     mqttClient.subscribe(CONTROL_TOPIC);
+    mqttClient.subscribe(RANGE_TOPIC);
 
     // Setup vehicle dynamics
     direction = 0.0;   // still
     speed = 1;         // full throttle
     clearToGo = false; // not clear to start
+    stopRange = STOP_RANGE_DEFAULT;
 
     // Confirm setup done
     mqttClient.beginMessage(SETUP_TOPIC);

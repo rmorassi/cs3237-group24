@@ -10,6 +10,7 @@
 #define SPEED_TOPIC "car/speed"
 #define CONTROL_TOPIC "car/control"
 #define SETUP_TOPIC "car/setup"
+#define RANGE_TOPIC "car/range"
 
 /* Information I/O */
 // Left Motor connections (A)
@@ -20,3 +21,6 @@
 #define R_SPE D0    // ENB
 #define R_FOR D1    // IN3
 #define R_REV D2    // IN4
+
+/* Car dynamics */
+#define STOP_RANGE_DEFAULT 0.4
