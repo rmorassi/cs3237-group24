@@ -14,10 +14,12 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import org.eclipse.paho.client.mqttv3.MqttException
 import java.io.ByteArrayOutputStream
@@ -48,23 +50,6 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         buttonConnectToServer.setOnClickListener {
             connectToServer()
         }
-
-//        // TODO: consider adding fragment to dynamically set serverURI from app
-//        val serverURI = "tcp://192.168.2.67:1883"
-//        val clientId = "test"
-//        val username = "test"
-//        val pwd = "test"
-//
-//        // Check if passed arguments are valid
-//        if (serverURI != null &&
-//            clientId != null &&
-//            username != null &&
-//            pwd != null
-//        ) {
-//            // Open MQTT Broker communication
-//            mqttClient = MQTTClient(this, serverURI, clientId)
-//        }
-//        mqttClient.connect(username, pwd)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
@@ -124,8 +109,24 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
     private var imageConverter: Runnable? = null
     private var rgbFrameBitmap: Bitmap? = null
     private var encodedImage: String? = null
+    private var imageProcessCounter: Int = 0
+    private var fps = 8
+    private var frequency = 60/fps
     override fun onImageAvailable(reader: ImageReader) {
         // We need wait until we have some size from onPreviewSizeChosen
+//        Log.d("tag", imageProcessCounter.toString())
+        imageProcessCounter += 1
+        if (imageProcessCounter%frequency != 0) {
+            try {
+                reader.acquireLatestImage().close()
+//                imageProcessCounter = 0
+            } catch (e: Exception) {
+//                Log.d("TAG", "image process failed")
+//                imageProcessCounter = frequency - 1
+//                e.printStackTrace()
+            }
+            return
+        }
         if (previewWidth == 0 || previewHeight == 0) {
             return
         }
@@ -174,6 +175,7 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888)
         rgbFrameBitmap?.setPixels(rgbBytes, 0, previewWidth, 0, 0, previewWidth, previewHeight)
         encodedImage = encodeImage(rgbFrameBitmap)
+        Log.d("TAG", "processing")
         postInferenceCallback!!.run()
     }
 
@@ -201,9 +203,11 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
 
     private var isConnectedToServer = false
     private fun connectToServer() {
-        // TODO: consider adding fragment to dynamically set serverURI from app
-        val serverURI = "tcp://172.31.215.122:1883"
-        val clientId = "test"
+        if (isConnectedToServer) return
+        val serverURI = "tcp://192.168.200.92:1883"
+        val serverUriFromInput = findViewById<EditText>(R.id.server_uri).text.toString()
+//        val serverURI = "tcp://$serverUriFromInput:1883"
+        val clientId = "phone"
         val username = "test"
         val pwd = "test"
 
@@ -213,21 +217,16 @@ class MainActivity : AppCompatActivity(), OnImageAvailableListener {
         try {
             mqttClient.connect(username, pwd)
             isConnectedToServer = true
-            Toast.makeText(this, "connection success!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "connected to $serverUriFromInput!", Toast.LENGTH_SHORT).show()
         } catch (e: MqttException) {
-            Toast.makeText(this, "connection failed, try again", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "failed to connect to $serverUriFromInput, please try again", Toast.LENGTH_SHORT).show()
             isConnectedToServer = false
         }
     }
 
-    var imageCounter = 0
-    var fps = 1
-    var frequency = 60/fps
     private fun sendImageToServer(image: String?) {
         if (!isConnectedToServer) return
-
-        imageCounter++
-        if (imageCounter%frequency == 0) {
+        if (imageProcessCounter%frequency == 0) {
             mqttClient.publish("image", image!!)
         }
     }
