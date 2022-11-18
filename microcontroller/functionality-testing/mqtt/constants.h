@@ -3,7 +3,7 @@
 #define PASSWORD "boboWifi"
 
 /* Information for MQTT communications */
-#define BROKER "192.168.54.92"
+#define BROKER "some.ip.address"
 #define PORT 1883
 #define SEND_TOPIC "Tembusu"
 #define RECEIVE_TOPIC "UTR"

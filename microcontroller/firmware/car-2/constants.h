@@ -6,10 +6,11 @@
 #define BROKER "some.ip.address"
 #define PORT 1883
 // Topics
-#define DIRECTION_RAW_TOPIC "car/direction/raw"
-#define DIRECTION_GAIN_TOPIC "car/direction/gain"
+#define DIRECTION_TOPIC "car/direction"
 #define SPEED_TOPIC "car/speed"
 #define CONTROL_TOPIC "car/control"
+#define SETUP_TOPIC "car/setup"
+#define RANGE_TOPIC "car/range"
 
 /* Information I/O */
 // Left Motor connections (A)
@@ -21,5 +22,5 @@
 #define R_FOR D1    // IN3
 #define R_REV D2    // IN4
 
-/* Vehicle dynamics */
-#define DIRECTION_GAIN_MULTIPLIER 2
+/* Car dynamics */
+#define STOP_RANGE_DEFAULT 0.4

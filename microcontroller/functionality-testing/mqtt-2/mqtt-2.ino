@@ -27,7 +27,6 @@ void restartESP()
 
 void setup()
 {
-
     // Set up Serial communications
     Serial.begin(115200);
     Serial.println();
@@ -102,12 +101,13 @@ void onMqttMessage(int messageSize)
     Serial.print(messageSize);
     Serial.println(" bytes:");
 
-    // use the Stream interface to print the contents
-    while (mqttClient.available())
-    {
-        Serial.print((char)mqttClient.read());
+    String message = String();
+    for (int i = 0; i < messageSize; i++)
+    { // Read the entire message
+        message += (char)mqttClient.read();
     }
-    Serial.println();
+
+    Serial.println(message);
 
     Serial.println();
 }
